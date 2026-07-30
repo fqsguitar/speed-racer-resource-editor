@@ -4,8 +4,6 @@ A modern resource editor for **Speed Racer: The Challenge of Racer X (MS-DOS)**.
 
 The editor allows viewing, editing, importing and exporting sprites stored in the game's `OBJECTS*.BIN` files.
 
-![Screenshot1](docs/screenshot1.png)
-![Screenshot2](docs/screenshot2.png)
 ![Demo](docs/demo.gif)
 
 
@@ -48,7 +46,8 @@ pyinstaller --onefile --windowed --icon assets/icon.ico "Speed Racer Resource Ed
 
 ## Screenshots
 
-(Add screenshots here.)
+![Screenshot1](docs/screenshot1.png)
+![Screenshot2](docs/screenshot2.png)
 
 ## License
 
