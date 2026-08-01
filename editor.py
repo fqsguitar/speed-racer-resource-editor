@@ -2193,23 +2193,47 @@ class SpeedRacerEditor:
                 ) 
 
     def abrir_objects(self) -> None:
+
+        textos = self.textos[
+            self.idioma_atual
+        ]
+
+        pasta_inicial = getattr(
+            self,
+            "ultima_pasta",
+            Path.home(),
+        )
+
         arquivo = filedialog.askopenfilename(
-            title="Abrir OBJECTS*.BIN",
-            initialdir=r"C:\dos\Games\SPEED",
+            title=textos["abrir"],
+            initialdir=pasta_inicial,
             filetypes=[
                 ("OBJECTS", "OBJECTS*.BIN"),
                 ("BIN", "*.BIN"),
-                ("Todos", "*.*"),
+                (
+                    "All files"
+                    if self.idioma_atual == "en"
+                    else "Todos os arquivos",
+                    "*.*",
+                ),
             ],
         )
 
         if not arquivo:
             return
 
-        self.arquivo_atual = Path(arquivo)
+        self.arquivo_atual = Path(
+            arquivo
+        )
 
-        self.sprites_originais = objects.carregar_objects(
-            self.arquivo_atual
+        self.ultima_pasta = (
+            self.arquivo_atual.parent
+        )
+
+        self.sprites_originais = (
+            objects.carregar_objects(
+                self.arquivo_atual
+            )
         )
 
         self.sprites = copy.deepcopy(
@@ -2217,9 +2241,7 @@ class SpeedRacerEditor:
         )
 
         self.atualizar_lista_sprites()
-
         self.atualizar_status_editor()
-        
 
         self.botao_salvar.config(
             state="normal",
@@ -2227,17 +2249,17 @@ class SpeedRacerEditor:
 
         self.botao_exportar.config(
             state="normal",
-        )        
+        )
 
         self.botao_importar.config(
             state="normal",
-        )        
+        )
 
         self.status.config(
             text=self.arquivo_atual.name
-        )        
+        )
 
-        self.limpar_alterado()        
+        self.limpar_alterado()     
 
     def atualizar_status_editor(self) -> None:
 
