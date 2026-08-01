@@ -20,6 +20,7 @@ class SpriteRenderer:
         self.escala = escala
 
         self.sprite = None
+        self.caminho_paleta = None
 
         self.tk_imagem = None
 
@@ -93,25 +94,42 @@ class SpriteRenderer:
             self.redesenhar()                
 
     def renderizar_sprite(self) -> None:
+
         if self.sprite is None:
+            return
+
+        if self.caminho_paleta is None:
             return
 
         sprite = self.sprite
 
         imagem = objects.sprite_para_imagem(
             sprite,
+            self.caminho_paleta,
             escala=self.escala,
         )
 
-        self.tk_imagem = ImageTk.PhotoImage(imagem)
+        self.tk_imagem = ImageTk.PhotoImage(
+            imagem
+        )
 
         self.canvas.delete("sprite")
 
-        largura_canvas = self.canvas.winfo_width()
-        altura_canvas = self.canvas.winfo_height()
+        largura_canvas = (
+            self.canvas.winfo_width()
+        )
 
-        largura_imagem = sprite.largura * self.escala
-        altura_imagem = sprite.altura * self.escala
+        altura_canvas = (
+            self.canvas.winfo_height()
+        )
+
+        largura_imagem = (
+            sprite.largura * self.escala
+        )
+
+        altura_imagem = (
+            sprite.altura * self.escala
+        )
 
         largura_area = max(
             largura_canvas,

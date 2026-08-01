@@ -6,6 +6,7 @@ import struct
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+
 from PIL import Image
 
 
@@ -13,9 +14,7 @@ from PIL import Image
 # CONFIGURAÇÃO
 # =============================================================================
 
-PASTA_JOGO = Path(r"C:\dos\Games\SPEED")
-ARQUIVO_PALETA = PASTA_JOGO / "ROADPAL.BIN"
-PASTA_SAIDA = PASTA_JOGO / "sprites_objects_todos"
+PASTA_SAIDA = Path("sprites_objects_todos")
 
 INDICE_PALETA = 3
 INDICE_TRANSPARENTE = 0
@@ -77,13 +76,16 @@ def rgb6_para_rgb8(valor: int) -> int:
     return round(valor * 255 / 63)
 
 
-def carregar_paleta() -> list[tuple[int, int, int]]:
-    if not ARQUIVO_PALETA.exists():
+def carregar_paleta(
+    caminho_paleta: Path,
+) -> list[tuple[int, int, int]]:
+
+    if not caminho_paleta.exists():
         raise FileNotFoundError(
-            f"Paleta não encontrada: {ARQUIVO_PALETA}"
+            f"Paleta não encontrada: {caminho_paleta}"
         )
 
-    dados = ARQUIVO_PALETA.read_bytes()
+    dados = caminho_paleta.read_bytes()
     bytes_por_paleta = 256 * 3
 
     inicio = INDICE_PALETA * bytes_por_paleta
@@ -91,10 +93,10 @@ def carregar_paleta() -> list[tuple[int, int, int]]:
 
     if fim > len(dados):
         raise ValueError(
-            f"Paleta {INDICE_PALETA} não existe em {ARQUIVO_PALETA}"
+            f"Paleta {INDICE_PALETA} não existe em {caminho_paleta}"
         )
 
-    paleta: list[tuple[int, int, int]] = []
+    paleta: list[tuple[int, int,int]] = []
 
     for indice in range(256):
         posicao = inicio + indice * 3
@@ -111,10 +113,13 @@ def carregar_paleta() -> list[tuple[int, int, int]]:
 
 def sprite_para_imagem(
     sprite: SpriteExtraido,
+    caminho_paleta: Path,
     escala: int = 4,
 ) -> Image.Image:
 
-    paleta = carregar_paleta()
+    paleta = carregar_paleta(
+        caminho_paleta
+    )
 
     rgba = bytearray()
 
@@ -159,6 +164,7 @@ def sprite_para_imagem(
 def imagem_para_sprite(
     sprite: SpriteExtraido,
     imagem: Image.Image,
+    caminho_paleta: Path,
 ) -> None:
 
     if imagem.size != (
@@ -173,7 +179,9 @@ def imagem_para_sprite(
             )
         )
 
-    paleta = carregar_paleta()
+    paleta = carregar_paleta(
+        caminho_paleta
+    )
 
     mapa_paleta: dict[
         tuple[int, int, int],
@@ -833,8 +841,8 @@ def gerar_resumo_geral(
         "EXTRAÇÃO GERAL DOS OBJECTS*.BIN",
         "=" * 100,
         "",
-        f"Pasta do jogo       : {PASTA_JOGO}",
-        f"Paleta              : {ARQUIVO_PALETA}",
+        "Pasta do jogo       : definida pelo arquivo selecionado",
+        "Paleta              : ROADPAL.BIN da pasta do arquivo selecionado",
         f"Paleta usada        : {INDICE_PALETA}",
         f"Arquivos processados: {len(resultados)}",
         f"Sprites extraídos   : {total_sprites}",
@@ -955,80 +963,6 @@ def carregar_objects(caminho_objects: Path) -> list[SpriteExtraido]:
 
     return sprites
 
-# =============================================================================
-# MAIN
-# =============================================================================
 
-def main() -> None:
-    print("=" * 100)
-    print("EXTRATOR GERAL — OBJECTS*.BIN")
-    print("=" * 100)
-    print()
-
-    arquivos = sorted(
-        PASTA_JOGO.glob("OBJECTS*.BIN")
-    )
-
-    if not arquivos:
-        print(
-            f"ERRO: nenhum OBJECTS*.BIN encontrado em {PASTA_JOGO}"
-        )
-        return
-
-    paleta = carregar_paleta()
-
-    PASTA_SAIDA.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    print(f"Pasta do jogo       : {PASTA_JOGO}")
-    print(f"Arquivos encontrados: {len(arquivos)}")
-    print(f"Saída               : {PASTA_SAIDA}")
-    print()
-
-    resultados: list[dict[str, object]] = []
-
-    for caminho in arquivos:
-        try:
-            resultado = extrair_arquivo(
-                caminho,
-                paleta,
-            )
-
-            resultados.append(resultado)
-
-        except Exception as erro:
-            print()
-            print(
-                f"[ERRO] {caminho.name}: "
-                f"{type(erro).__name__}: {erro}"
-            )
-
-            resultados.append(
-                {
-                    "arquivo": caminho.name,
-                    "tamanho": caminho.stat().st_size,
-                    "registros": 0,
-                    "fim_tabela": 0,
-                    "offsets": 0,
-                    "sprites": 0,
-                    "rejeitados": 0,
-                    "pasta": "",
-                }
-            )
-
-    gerar_resumo_geral(resultados)
-
-    print()
-    print("=" * 100)
-    print("EXTRAÇÃO GERAL CONCLUÍDA")
-    print("=" * 100)
-    print()
-    print(f"Arquivos processados : {len(resultados)}")
-    print(f"Saída                : {PASTA_SAIDA}")
-    print()
-    print("Abra primeiro:")
-    print(PASTA_SAIDA / "00_RESUMO_GERAL.txt")
 
 

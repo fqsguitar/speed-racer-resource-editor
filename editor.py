@@ -214,6 +214,7 @@ class SpeedRacerEditor:
                 objects.imagem_para_sprite(
                     sprite,
                     imagem,
+                    self.caminho_paleta,
                 )
 
             self.marcar_alterado()
@@ -771,6 +772,7 @@ class SpeedRacerEditor:
                 imagem = (
                     objects.sprite_para_imagem(
                         sprite,
+                        self.caminho_paleta,
                         escala=escala,
                     )
                 )
@@ -841,6 +843,7 @@ class SpeedRacerEditor:
                     imagem = (
                         objects.sprite_para_imagem(
                             sprite,
+                            self.caminho_paleta,
                             escala=escala,
                         )
                     )
@@ -2149,7 +2152,21 @@ class SpeedRacerEditor:
     def desenhar_paleta(self) -> None:
         self.paleta.delete("all")
 
-        paleta = objects.carregar_paleta()
+        caminho_paleta = getattr(
+            self,
+            "caminho_paleta",
+            None,
+        )
+
+        if (
+            caminho_paleta is None
+            or not caminho_paleta.exists()
+        ):
+            return
+
+        paleta = objects.carregar_paleta(
+            caminho_paleta
+        )
 
         tamanho = 16
 
@@ -2226,6 +2243,33 @@ class SpeedRacerEditor:
             arquivo
         )
 
+        self.caminho_paleta = (
+            self.arquivo_atual.parent
+            / "ROADPAL.BIN"
+        )
+
+        if not self.caminho_paleta.exists():
+
+            messagebox.showerror(
+                (
+                    "Palette not found"
+                    if self.idioma_atual == "en"
+                    else "Paleta não encontrada"
+                ),
+                (
+                    "ROADPAL.BIN was not found in the same folder as the selected OBJECTS file."
+                    if self.idioma_atual == "en"
+                    else "O arquivo ROADPAL.BIN não foi encontrado na mesma pasta do OBJECTS selecionado."
+                ),
+            )
+
+            return
+        self.renderer.caminho_paleta = (
+            self.caminho_paleta
+        )        
+
+        self.desenhar_paleta()
+
         self.ultima_pasta = (
             self.arquivo_atual.parent
         )
@@ -2259,7 +2303,7 @@ class SpeedRacerEditor:
             text=self.arquivo_atual.name
         )
 
-        self.limpar_alterado()     
+        self.limpar_alterado()    
 
     def atualizar_status_editor(self) -> None:
 
